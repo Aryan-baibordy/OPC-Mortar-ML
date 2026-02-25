@@ -1,0 +1,123 @@
+# The following are the codes in Python. 
+# Importing libraries
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# importing data
+df = pd.read_excel('Database.xlsx')
+
+# for data scaling there are two methods: normalization and standardization
+# in this case we used normalization method
+
+#distinguishing between features and target
+features = df_cleaned.drop(["28-days CS (MPa)"], axis = 1)
+target_reg = df_cleaned["28-days CS (MPa)"]
+
+
+#importing the library that has MinMaxScalar
+from sklearn.preprocessing import MinMaxScaler
+
+#Step1
+scalar = MinMaxScaler()
+
+#Step 2 and 3
+scaled_feature = scalar.fit_transform(features)
+scaled_feature = pd.DataFrame(scaled_feature, columns=features.columns)
+scaled_feature
+
+# divide the dataset into two groups: features and target_reg and target_class
+X_reg = scaled_feature.copy(deep=True)
+y_reg = target_reg.copy(deep=True)
+
+# divide the dataset into four groups: Train and test features and train and test target
+# import the library that can split the dataset
+from sklearn.model_selection import train_test_split
+
+#for regression problem
+X_train_reg , X_test_reg , y_train_reg , y_test_reg = train_test_split(X_reg, y_reg, test_size = 0.3, random_state = 11)
+
+
+# Display the shapes of the train and test sets for regression
+print(f"X_train_shape: {X_train_reg.shape}")
+print(f"X_testshape: {X_test_reg.shape}")
+
+print(f"y_reg_train_shape: {y_train_reg.shape}")
+print(f"y_reg_test_shape: {y_test_reg.shape}")
+
+#KNN
+from sklearn.neighbors import KNeighborsRegressor
+
+KNN = KNeighborsRegressor(
+    n_neighbors=6,
+    metric='minkowski',
+    p=2,
+    weights='distance'
+).fit(X_train_reg, y_train_reg)
+
+# Making predictions
+y_train_pred_adaboost = best_adaboost.predict(X_train_reg)
+y_test_pred_adaboost = best_adaboost.predict(X_test_reg)
+y_complete_pred_adaboost = best_adaboost.predict(X_reg)
+
+# Evaluating the model
+train_metrics_adaboost = evaluate_predictions(y_train_reg, y_train_pred_adaboost)
+test_metrics_adaboost = evaluate_predictions(y_test_reg, y_test_pred_adaboost)
+complete_metrics_adaboost = evaluate_predictions(y_reg, y_complete_pred_adaboost)
+
+# Printing the results
+print_results(train_metrics_adaboost, 'Train adaboost')
+print_results(test_metrics_adaboost, 'Test adaboost')
+print_results(complete_metrics_adaboost, 'Complete dataset adaboost')
+
+import shap
+# Define a prediction function for your model
+def model_predict(data):
+  return KNN.predict(data)
+
+# Create the explainer using the prediction function
+explainer = shap.Explainer(model_predict, X_train_reg)
+
+# Calculate SHAP values
+shap_values = explainer(X_reg)
+
+shap.plots.bar(shap_values, max_display=14)
+
+shap.plots.beeswarm(shap_values, max_display=12)
+
+
+
+from catboost import CatBoostRegressor
+
+cat_reg = CatBoostRegressor(random_seed=11)
+
+cat_reg.fit(X_train_reg, y_train_reg)
+
+# Predict
+y_train_pred_cat_reg = cat_reg.predict(X_train_reg)
+y_test_pred_cat_reg = cat_reg.predict(X_test_reg)
+y_complete_pred_cat_reg = cat_reg.predict(X_reg)
+
+# Evaluate the model
+train_metrics_cat_reg = evaluate_predictions(y_train_reg, y_train_pred_cat_reg)
+test_metrics_cat_reg = evaluate_predictions(y_test_reg, y_test_pred_cat_reg)
+complete_metrics_cat_reg = evaluate_predictions(y_reg, y_complete_pred_cat_reg)
+
+# Print results
+print_results(train_metrics_cat_reg, 'Train cat_reg')
+print_results(test_metrics_cat_reg, 'Test cat_reg')
+print_results(complete_metrics_cat_reg, 'Complete dataset cat_reg')
+
+import shap
+# Define a prediction function for your model
+def model_predict2(data):
+  return cat_reg.predict(data)
+
+# Create the explainer using the prediction function
+explainer = shap.Explainer(model_predict2, X_train_reg)
+
+# Calculate SHAP values
+shap_values2 = explainer(X_reg)
+
+shap.plots.beeswarm(shap_values2, max_display=12)
